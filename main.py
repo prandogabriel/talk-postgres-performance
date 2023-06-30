@@ -1,5 +1,5 @@
 import psycopg2
-import time
+import timeit
 import matplotlib.pyplot as plt
 
 # Função para criar tabela
@@ -11,18 +11,23 @@ def create_table(cursor, table_name, columns, index=False):
         for col in columns:
             cursor.execute(f"CREATE INDEX idx_{col} ON {table_name} ({col});")
 
+# Função para executar a consulta
+def run_query(cursor, query):
+    cursor.execute(query)
+    conn.commit()
+
 # Criação da conexão com o banco
 conn = psycopg2.connect(
-    dbname="data",
-    user="postgres",
-    password="docker",
+    dbname="seu_banco_de_dados",
+    user="seu_usuario",
+    password="sua_senha",
     host="localhost",
     port="5432"
 )
 
 cur = conn.cursor()
 
-sizes = [100 , 1000, 10000]#, 100000, 1000000]
+sizes = [100, 1000, 10000, 100000, 1000000]
 no_index_times = []
 index_times = []
 
@@ -35,10 +40,8 @@ for size in sizes:
     conn.commit()
 
     # Medindo tempo de execução sem índice
-    start = time.time()
-    cur.execute("EXPLAIN ANALYZE SELECT * FROM tabela_teste WHERE campo1 = 'valor500000';")
-    end = time.time()
-    no_index_times.append(end - start)
+    elapsed_time = timeit.timeit(lambda: run_query(cur, "EXPLAIN ANALYZE SELECT * FROM tabela_teste WHERE campo1 = 'valor500000';"), number=1)
+    no_index_times.append(elapsed_time)
 
     # Dropando a tabela para criar com índice
     cur.execute("DROP TABLE tabela_teste;")
@@ -51,10 +54,8 @@ for size in sizes:
     conn.commit()
 
     # Medindo tempo de execução com índice
-    start = time.time()
-    cur.execute("EXPLAIN ANALYZE SELECT * FROM tabela_teste WHERE campo1 = 'valor500000';")
-    end = time.time()
-    index_times.append(end - start)
+    elapsed_time = timeit.timeit(lambda: run_query(cur, "EXPLAIN ANALYZE SELECT * FROM tabela_teste WHERE campo1 = 'valor500000';"), number=1)
+    index_times.append(elapsed_time)
 
     # Dropando a tabela para o próximo loop
     cur.execute("DROP TABLE tabela_teste;")

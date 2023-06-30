@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  postgres:
+    image: bitnami/postgresql:latest
+    container_name: talk-postgres-performance
+    environment:
+      - POSTGRESQL_PASSWORD=docker
+      - POSTGRESQL_DATABASE=data
+    ports:
+      - 5432:5432
+    volumes:
+      - talk-postgres-performance-data:/var/lib/postgresql/data
+volumes:
+  talk-postgres-performance-data:

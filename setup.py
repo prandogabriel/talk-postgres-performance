@@ -75,9 +75,7 @@ class Setup:
                 $$ LANGUAGE plpgsql;
             """
             self.execute_query(create_table_test)
-        elif not self.table_count_greater_equal("test", size):
-            raise Exception("A tabela test já existe, mas não possui o número mínimo de registros.")
-
+        
         self.analyze_table("test")
 
     def create_index_idx_text(self):
@@ -143,9 +141,7 @@ class Setup:
                 $$ LANGUAGE plpgsql;
             """
             self.execute_query(create_table_person)
-        elif not self.table_count_greater_equal("person", 2*size):
-            raise Exception("A tabela person já existe, mas não possui o número mínimo de registros.")
-
+       
         self.analyze_table("person")
 
     def create_index_idx_gender_bitmap(self):
@@ -211,32 +207,28 @@ class Setup:
 
     def create_students_table(self, size):
         if not self.table_exists("students"):
-            create_table_students = f"""
+            create_table_students = """ 
                 CREATE TABLE students (info jsonb);
                 DO $$
-                DECLARE vartype varchar[] := '{"quiz", "exam", "homework"}';
-                BEGIN
-                    FOR i IN 1..{size} LOOP
-                        FOR j IN 1..3 LOOP
-                            INSERT INTO students VALUES (
-                                (
-                                    '
-                                    {{
-                                        "student" : ' || i || ',
-                                        "type" : "' || vartype[j] || '",
-                                        "score" : ' || round(random() * 100) || '
-                                    }}
-                                    '
-                                )::json
-                            );
+                    DECLARE vartype varchar[] := '{"quiz", "exam", "homework"}';
+                    BEGIN
+                        FOR i IN 1..333333 LOOP
+                            FOR j IN 1..3 LOOP
+                                INSERT INTO students (info) VALUES (
+                                    jsonb_build_object(
+                                        'student', i,
+                                        'type', vartype[j],
+                                        'score', round(random() * 100)
+                                    )
+                                );
+                            END LOOP;
                         END LOOP;
-                    END LOOP;
-                END;
-                $$ LANGUAGE plpgsql;
-            """
+                    END;
+                $$ LANGUAGE plpgsql; """
+            
             self.execute_query(create_table_students)
-        elif not self.table_count_greater_equal("students", 3*size):
-            raise Exception("A tabela students já existe, mas não possui o número mínimo de registros.")
+        # elif not self.table_count_greater_equal("students", 3*size):
+        #     raise Exception("A tabela students já existe, mas não possui o número mínimo de registros.")
 
         self.analyze_table("students")
 
